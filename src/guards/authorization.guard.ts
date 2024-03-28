@@ -33,8 +33,6 @@ export class AuthorizationGuard implements CanActivate {
     if (!requiredRoles.includes(role)) {
       return false;
     }
-
-    console.table({ requiredRoles: requiredRoles, role: role });
     return true;
   }
 }
