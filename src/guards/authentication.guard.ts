@@ -4,19 +4,11 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { Role } from '@prisma/client';
-import { PrismaService } from 'prisma/prisma.service';
-import { ROLES_KEY } from 'src/decorators/role.decorator';
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    private jwtService: JwtService,
-    private prismaService: PrismaService,
-  ) {}
+  constructor(private jwtService: JwtService) {}
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
