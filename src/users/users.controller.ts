@@ -19,7 +19,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/decorators/role.decorator';
+import { AuthenticationGuard } from 'src/guards/authentication.guard';
+import { AuthorizationGuard } from 'src/guards/authorization.guard';
 
 @Controller('users')
 @ApiTags('users')
@@ -32,8 +34,9 @@ export class UsersController {
     return new UserEntity(await this.usersService.create(createUserDto));
   }
 
+  @Roles('ADMIN')
+  @UseGuards(AuthenticationGuard, AuthorizationGuard)
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity, isArray: true })
   async findAll() {
@@ -42,15 +45,14 @@ export class UsersController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
   async findOne(@Param('id', ParseIntPipe) id: number) {
     return new UserEntity(await this.usersService.findOne(id));
   }
 
+  @UseGuards(AuthenticationGuard)
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })
   async update(
@@ -60,8 +62,8 @@ export class UsersController {
     return new UserEntity(await this.usersService.update(id, updateUserDto));
   }
 
+  @UseGuards(AuthenticationGuard)
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
   async remove(@Param('id', ParseIntPipe) id: number) {
