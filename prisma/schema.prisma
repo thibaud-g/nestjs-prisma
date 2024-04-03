@@ -1,6 +1,6 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -29,6 +29,17 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   articles  Article[]
+}
+
+model Project {
+  id               Int      @id @default(autoincrement())
+  name             String
+  isWorkInProgress Boolean  @default(true)
+  stack            String[] @default([])
+  url              String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  imageUrl         String?
 }
 
 enum Role {

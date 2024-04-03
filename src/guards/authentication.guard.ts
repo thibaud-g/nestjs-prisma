@@ -13,6 +13,10 @@ export class AuthenticationGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     const headers = request.headers;
+
+    if (!headers.authorization)
+      throw new UnauthorizedException('No token provided');
+
     const token = headers.authorization.split(' ')[1];
 
     if (!token) throw new UnauthorizedException('No token provided');
