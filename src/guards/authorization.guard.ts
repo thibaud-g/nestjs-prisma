@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from 'prisma/prisma.service';
 import { ROLES_KEY } from 'src/decorators/role.decorator';
@@ -12,10 +17,18 @@ export class AuthorizationGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
-    const requiredRoles = this.reflector.getAllAndOverride(ROLES_KEY, [
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
-    ]);
+    ]) ?? [];
+
+    if (requiredRoles.length === 0) {
+      return true;
+    }
+
+    if (!request.user?.userId) {
+      throw new ForbiddenException('Missing authenticated user');
+    }
 
     const user = await this.prismaService.user.findUnique({
       where: {
@@ -24,14 +37,15 @@ export class AuthorizationGuard implements CanActivate {
     });
 
     if (!user) {
-      return false;
+      throw new ForbiddenException('User does not exist');
     }
 
     const role = user.role;
 
     if (!requiredRoles.includes(role)) {
-      return false;
+      throw new ForbiddenException('Insufficient role permissions');
     }
+
     return true;
   }
 }

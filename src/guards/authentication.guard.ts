@@ -10,19 +10,26 @@ import { JwtService } from '@nestjs/jwt';
 export class AuthenticationGuard implements CanActivate {
   constructor(private jwtService: JwtService) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const headers = request.headers;
+    const authHeader = request.headers.authorization;
 
-    if (!headers.authorization)
+    if (!authHeader || typeof authHeader !== 'string') {
       throw new UnauthorizedException('No token provided');
+    }
 
-    const token = headers.authorization.split(' ')[1];
+    if (!authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Invalid token format');
+    }
 
-    if (!token) throw new UnauthorizedException('No token provided');
+    const token = authHeader.slice(7).trim();
+
+    if (!token) {
+      throw new UnauthorizedException('No token provided');
+    }
 
     try {
-      request.user = this.jwtService.verify(token);
+      request.user = await this.jwtService.verifyAsync(token);
     } catch (e) {
       throw new UnauthorizedException('Invalid token');
     }
